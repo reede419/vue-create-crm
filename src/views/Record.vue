@@ -3,12 +3,18 @@
     <div class="page-title">
       <h3>Новая запись</h3>
     </div>
+    <loader v-if="loading" />
 
-    <form class="form">
+    <p class="center" v-else-if="!categories.length">Category is empty. <router-link to="categories">Add new category</router-link> </p>
+
+    <form class="form" v-else @submit.prevent="onSubmit">
       <div class="input-field" >
-        <select>
+        <select ref="select" v-model="category">
           <option
-          >name cat</option>
+            v-for="c in categories"
+            :key="c.id"
+            :value="c.id"
+          >{{c.title}}</option>
         </select>
         <label>Выберите категорию</label>
       </div>
@@ -20,6 +26,7 @@
               name="type"
               type="radio"
               value="income"
+              v-model="type"
           />
           <span>Доход</span>
         </label>
@@ -32,6 +39,7 @@
               name="type"
               type="radio"
               value="outcome"
+              v-model="type"
           />
           <span>Расход</span>
         </label>
@@ -41,19 +49,30 @@
         <input
             id="amount"
             type="number"
+            v-model.number="amount"
+            :class="{invalid: $v.amount.$dirty && !$v.amount.minValue}"
         >
+        
         <label for="amount">Сумма</label>
-        <span class="helper-text invalid">amount пароль</span>
+        <span 
+            class="helper-text invalid"
+            v-if="$v.amount.$dirty && !$v.amount.minValue"
+          >Минимальная величина {{ $v.amount.$params.minValue.min }}</span>
+        <!-- <span class="helper-text invalid">amount пароль</span> -->
       </div>
 
       <div class="input-field">
         <input
             id="description"
             type="text"
+            v-model="description"
+            :class="{invalid: $v.description.$dirty && !$v.description.required}"
         >
         <label for="description">Описание</label>
-        <span
-              class="helper-text invalid">description пароль</span>
+        <span 
+            class="helper-text invalid"
+            v-if="$v.description.$dirty && !$v.description.required"
+          >Введите описание</span>
       </div>
 
       <button class="btn waves-effect waves-light" type="submit">
@@ -63,3 +82,99 @@
     </form>
   </div>
 </template>
+
+<script>
+import M from 'materialize-css'
+import { required, minValue } from 'vuelidate/lib/validators'
+import { mapGetters } from 'vuex'
+
+export default {
+  name: 'record',
+  data: () => ({
+    loading: true,
+    categories: [],
+    select: null,
+    category: null,
+    type: 'outcome',
+    amount: 1,
+    description: ''
+  }),
+  validations: {
+    description: { required },
+    amount: { minValue: minValue(1) }
+  },
+  computed: {
+    ...mapGetters(['info']),
+    canCreateRecord() {
+      if( this.type === 'income' ) {
+        return true
+      }
+
+      return this.info.bill >= this.amount
+    }
+  },
+  methods: {
+    async onSubmit() {
+      if( this.$v.$invalid ) {
+        this.$v.$touch()
+        return
+      }
+
+      if( this.canCreateRecord ) {
+        try {
+          await this.$store.dispatch('createRecord', {
+            catId: this.category,
+            amount: this.amount,
+            description: this.description,
+            type: this.type,
+            date: new Date().toJSON()
+          })
+          const bill = this.type === 'income' ? this.info.bill + this.amount : this.info.bill - this.amount
+
+          await this.$store.dispatch('updateInfo', {bill})
+          this.$message('Created record')
+          this.$v.$reset()
+          this.amount = 1
+          this.description = ''
+        } catch (e) {
+          console.log(e)
+        }
+      } else {
+        this.$message(`Недостаточно срудств на счете (${this.amount - this.info.bill})`)
+      }
+
+      // try {
+      //   const categoryData = {
+      //     id: this.current,
+      //     title: this.title,
+      //     limit: this.limit
+      //   }
+      //   await this.$store.dispatch('updateCategory', categoryData)
+
+      //   this.$message('Category is updated')
+      //   this.$emit('updated', categoryData)
+      // } catch (e) {
+      //   console.log(e)
+      // }
+    }
+  },
+  async mounted() {
+    this.categories = await this.$store.dispatch('fetchCategories')
+    this.loading = false
+
+    if( this.categories.length ) {
+      this.category = this.categories[0].id
+    }
+    setTimeout(() => {
+      this.select = M.FormSelect.init(this.$refs.select)
+      M.updateTextFields()
+
+    }, 0)
+  },
+  destroyed() {
+    if ( this.select && this.select.destroy ) {
+      this.select.destroy()
+    }
+  }
+}
+</script>
