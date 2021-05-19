@@ -7,6 +7,8 @@ import router from "./router";
 import store from "./store";
 import dateFilter from './filters/date.filter'
 import currencyFilter from './filters/currency.filter'
+import toolTipDirectives from './directives/tooltip.directives'
+
 
 import'materialize-css/dist/js/materialize.min.js'
 import messagePlugin from './utils/message.plugin'
@@ -21,6 +23,7 @@ import 'firebase/database'
 Vue.config.productionTip = false;
 
 Vue.filter('date', dateFilter)
+Vue.directive('tooltip', toolTipDirectives)
 Vue.filter('currency', currencyFilter)
 
 Vue.use(Vuelidate)
