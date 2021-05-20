@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Vuelidate from 'vuelidate'
+import Paginate from 'vuejs-paginate'
 
 import App from "./App.vue";
 import "./registerServiceWorker";
@@ -29,6 +30,8 @@ Vue.filter('currency', currencyFilter)
 Vue.use(Vuelidate)
 Vue.use(messagePlugin)
 Vue.component('Loader', Loader)
+Vue.component('Paginate', Paginate)
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyAJTQgJAuAW7CCJlSAdUgYD3mQfNBLNPLA",
