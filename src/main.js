@@ -7,6 +7,8 @@ import "./registerServiceWorker";
 import router from "./router";
 import store from "./store";
 import dateFilter from './filters/date.filter'
+import localizeFilter from './filters/localize.filter'
+
 import currencyFilter from './filters/currency.filter'
 import toolTipDirectives from './directives/tooltip.directives'
 
@@ -26,6 +28,8 @@ Vue.config.productionTip = false;
 Vue.filter('date', dateFilter)
 Vue.directive('tooltip', toolTipDirectives)
 Vue.filter('currency', currencyFilter)
+Vue.filter('localize', localizeFilter)
+
 
 Vue.use(Vuelidate)
 Vue.use(messagePlugin)
