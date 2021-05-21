@@ -42,8 +42,17 @@
 import {mapGetters, mapActions} from 'vuex'
 import { required } from 'vuelidate/lib/validators'
 
+// this.$title('Profile') 
+// $title - from utils/title plugin (Vue.prototype.$title)
+// Profile - from localizations
+
 import M from 'materialize-css'
 export default {
+  metaInfo() {
+    return {
+      title: this.$title('Profile')
+    }
+  },
   name: 'profile',
   data: () => ({
     name: '',
